@@ -21,3 +21,10 @@ services:
       - "8000:8000"
     depends_on:
       - database
+
+  frontend-service:
+    build: ./frontend-service
+    ports:
+      - "3000:80"
+    depends_on:
+      - api-service

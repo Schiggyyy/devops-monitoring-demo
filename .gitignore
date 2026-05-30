@@ -1,5 +1,16 @@
+# Python
 __pycache__/
 *.pyc
-.idea/
 venv/
 .env
+
+# PyCharm
+.idea/
+
+# Node / Frontend
+node_modules/
+frontend-service/node_modules/
+frontend-service/dist/
+
+# Docker / Logs
+*.log
