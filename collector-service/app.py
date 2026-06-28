@@ -2,22 +2,17 @@ import time
 import random
 import psycopg2
 
-# Schwelle wie im Original: ueber 80 % -> WARNING (sonst OK).
-WARNING_THRESHOLD = 80
 
+SERVER = "demo-server-1"
 
-def evaluate_status(cpu, ram):
-    """Bewertet CPU/RAM zu OK oder WARNING (Logik wie im Original)."""
-    if cpu > WARNING_THRESHOLD or ram > WARNING_THRESHOLD:
-        return "WARNING"
-    return "OK"
-
-
-def generate_metric():
-    """Erzeugt simulierte CPU-/RAM-Werte (wie im Original)."""
-    cpu = round(random.uniform(5, 95), 2)
-    ram = round(random.uniform(10, 90), 2)
-    return cpu, ram
+# Pool an INFO-Meldungen fuer den Normalbetrieb
+INFO_MESSAGES = [
+    "request handled in 12ms",
+    "health check ok",
+    "scheduled job finished",
+    "user login successful",
+    "cache refreshed",
+]
 
 
 def get_connection():
@@ -29,17 +24,47 @@ def get_connection():
     )
 
 
-def save_metric(conn, server_name, cpu, ram, status):
-    """Schreibt einen Messwert in die Datenbank."""
+def generate_metric():
+    """Erzeugt simulierte CPU-/RAM-Werte. Rein -> testbar."""
+    cpu = round(random.uniform(5, 95), 2)
+    ram = round(random.uniform(10, 90), 2)
+    return cpu, ram
+
+
+def build_log_message(cpu, ram):
+    """
+    Baut eine rohe Log-Zeile passend zur Auslastung. Rein -> testbar.
+
+    Der Collector bewertet hier NICHT - er erzeugt nur den Text. Das Level
+    (WARNING/ERROR/INFO) steht zwar im Text, wird aber erst vom
+    Processing-Service herausgeparst.
+    """
+    if cpu > 85 or ram > 85:
+        return f"ERROR resource exhaustion: cpu={cpu}% ram={ram}%"
+    if cpu > 70 or ram > 70:
+        return f"WARNING high load: cpu={cpu}% ram={ram}%"
+    return f"INFO {random.choice(INFO_MESSAGES)}"
+
+
+def save_metric(conn, server_name, cpu, ram):
+    """Schreibt eine ROHE Metrik (ohne Status) nach raw_metrics."""
     with conn.cursor() as cur:
         cur.execute(
             """
-            INSERT INTO metrics (server_name, cpu_usage, ram_usage, status)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO raw_metrics (server_name, cpu_usage, ram_usage)
+            VALUES (%s, %s, %s)
             """,
-            (server_name, cpu, ram, status),
+            (server_name, cpu, ram),
         )
-        conn.commit()
+
+
+def save_log(conn, source, message):
+    """Schreibt eine ROHE Log-Zeile nach raw_logs."""
+    with conn.cursor() as cur:
+        cur.execute(
+            "INSERT INTO raw_logs (source, message) VALUES (%s, %s)",
+            (source, message),
+        )
 
 
 def run(conn=None, interval=5):
@@ -50,13 +75,17 @@ def run(conn=None, interval=5):
 
     while True:
         cpu, ram = generate_metric()
-        status = evaluate_status(cpu, ram)
-        save_metric(conn, "demo-server-1", cpu, ram, status)
-        print(f"Saved metric: CPU={cpu}, RAM={ram}, STATUS={status}")
+        message = build_log_message(cpu, ram)
+
+        save_metric(conn, SERVER, cpu, ram)
+        save_log(conn, SERVER, message)
+        conn.commit()  # Metrik + Log gemeinsam committen
+
+        print(f"Saved metric (CPU={cpu}, RAM={ram}) and log: {message}")
         time.sleep(interval)
 
 
 # Die Endlosschleife startet nur, wenn die Datei direkt ausgefuehrt wird.
-# Beim Import (z. B. durch die Tests) passiert nichts -> testbar.
+# Beim Import (z. B. durch Tests) passiert nichts -> testbar.
 if __name__ == "__main__":
     run()
