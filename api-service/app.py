@@ -41,3 +41,19 @@ def get_metrics():
     data = cur.fetchall()
     conn.close()
     return data
+
+@app.get("/logs")
+def get_logs():
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    cur.execute("""
+        SELECT id, source, level, status, message, created_at
+        FROM processed_logs
+        ORDER BY created_at DESC
+        LIMIT 30
+    """)
+
+    data = cur.fetchall()
+    conn.close()
+    return data

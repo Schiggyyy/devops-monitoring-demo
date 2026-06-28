@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Activity, Cpu, Database, Server, AlertTriangle, CheckCircle } from "lucide-react";
+import LogPanel from "./LogPanel.jsx";
 
 const API_URL = "http://localhost:8000/metrics";
 
@@ -138,6 +139,7 @@ function App() {
           </table>
         )}
       </section>
+      <LogPanel />
     </div>
   );
 }
