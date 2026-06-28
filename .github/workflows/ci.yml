@@ -9,12 +9,33 @@ on:
       - main
 
 jobs:
-  build-containers:
+  test:
+    name: Tests
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Code auschecken
         uses: actions/checkout@v4
 
-      - name: Build Docker containers
+      - name: Python einrichten
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Abhaengigkeiten installieren
+        run: pip install -r processing-service/requirements.txt
+
+      - name: Tests ausfuehren
+        run: |
+          cd processing-service
+          pytest -v
+
+  build:
+    name: Build Docker images
+    needs: test          # startet nur, wenn der Test-Job erfolgreich war
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code auschecken
+        uses: actions/checkout@v4
+
+      - name: Container bauen
         run: docker compose build
