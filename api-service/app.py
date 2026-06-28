@@ -31,10 +31,27 @@ def get_metrics():
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     cur.execute("""
-        SELECT id, server_name, cpu_usage, ram_usage, status, created_at
-        FROM metrics
+        SELECT id, server_name, cpu_usage, ram_usage,
+               cpu_status, ram_status, status, created_at
+        FROM processed_metrics
         ORDER BY created_at DESC
         LIMIT 20
+    """)
+
+    data = cur.fetchall()
+    conn.close()
+    return data
+
+@app.get("/logs")
+def get_logs():
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    cur.execute("""
+        SELECT id, source, level, status, message, created_at
+        FROM processed_logs
+        ORDER BY created_at DESC
+        LIMIT 30
     """)
 
     data = cur.fetchall()

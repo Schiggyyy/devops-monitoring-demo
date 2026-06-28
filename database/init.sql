@@ -1,8 +1,27 @@
-CREATE TABLE IF NOT EXISTS metrics (
-    id SERIAL PRIMARY KEY,
-    server_name VARCHAR(100),
-    cpu_usage FLOAT,
-    ram_usage FLOAT,
-    status VARCHAR(20),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- Roh-Logs: rohe Textzeilen, die der Collector meldet (ohne Level-Auswertung)
+CREATE TABLE IF NOT EXISTS raw_logs (
+    id          SERIAL PRIMARY KEY,
+    source      TEXT      NOT NULL,
+    message     TEXT      NOT NULL,
+    created_at  TIMESTAMP NOT NULL DEFAULT NOW(),
+    processed   BOOLEAN   NOT NULL DEFAULT FALSE
 );
+
+CREATE INDEX IF NOT EXISTS idx_raw_logs_unprocessed
+    ON raw_logs (processed)
+    WHERE processed = FALSE;
+
+-- Bewertete Logs: mit geparstem Level und Status, die API liest hieraus
+CREATE TABLE IF NOT EXISTS processed_logs (
+    id           SERIAL PRIMARY KEY,
+    raw_id       INTEGER REFERENCES raw_logs (id),
+    source       TEXT      NOT NULL,
+    level        TEXT      NOT NULL,   -- INFO | WARNING | ERROR | CRITICAL
+    status       TEXT      NOT NULL,   -- OK | WARNING | CRITICAL
+    message      TEXT      NOT NULL,
+    created_at   TIMESTAMP NOT NULL,
+    processed_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_processed_logs_created
+    ON processed_logs (created_at DESC);
