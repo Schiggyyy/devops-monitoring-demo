@@ -15,20 +15,15 @@ while True:
     cpu = round(random.uniform(5, 95), 2)
     ram = round(random.uniform(10, 90), 2)
 
-    if cpu > 80 or ram > 80:
-        status = "WARNING"
-    else:
-        status = "OK"
-
     with conn.cursor() as cur:
         cur.execute(
             """
-            INSERT INTO metrics (server_name, cpu_usage, ram_usage, status)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO raw_metrics (server_name, cpu_usage, ram_usage)
+            VALUES (%s, %s, %s)
             """,
-            ("demo-server-1", cpu, ram, status)
+            ("demo-server-1", cpu, ram)
         )
         conn.commit()
 
-    print(f"Saved metric: CPU={cpu}, RAM={ram}, STATUS={status}")
+    print(f"Saved raw metric: CPU={cpu}, RAM={ram}")
     time.sleep(5)

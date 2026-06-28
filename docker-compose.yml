@@ -15,6 +15,17 @@ services:
     depends_on:
       - database
 
+  processing-service:
+    build: ./processing-service
+    depends_on:
+      - database
+    environment:
+      DB_HOST: database
+      DB_NAME: monitoring
+      DB_USER: demo
+      DB_PASSWORD: demo
+    restart: unless-stopped
+
   api-service:
     build: ./api-service
     ports:
