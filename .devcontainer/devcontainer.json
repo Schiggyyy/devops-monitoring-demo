@@ -1,0 +1,18 @@
+{
+  "name": "DevOps Monitoring Demo",
+
+  // Debian-basiertes Python-Image (glibc) - passt zu den Service-Dockerfiles
+  // und ist mit dem JetBrains-Backend kompatibel. Bringt git bereits mit.
+  "image": "python:3.12",
+
+  // Nach dem Bau einmalig die Abhaengigkeiten aller Python-Services
+  // installieren, damit man direkt entwickeln und Tests laufen lassen kann.
+  "postCreateCommand": "pip install -r processing-service/requirements.txt -r api-service/requirements.txt -r collector-service/requirements.txt",
+
+  // PyCharm als Backend-IDE automatisch starten.
+  "customizations": {
+    "jetbrains": {
+      "backend": "PyCharm"
+    }
+  }
+}
