@@ -3,7 +3,7 @@ import random
 import psycopg2
 
 
-SERVER = "demo-server-1"
+SERVERS = ["demo-server-1", "demo-server-2", "demo-server-3"]
 
 # Pool an INFO-Meldungen fuer den Normalbetrieb
 INFO_MESSAGES = [
@@ -68,20 +68,19 @@ def save_log(conn, source, message):
 
 
 def run(conn=None, interval=5):
-    """Hauptschleife des Collectors. Laeuft nur beim direkten Start."""
     if conn is None:
         time.sleep(5)
         conn = get_connection()
 
     while True:
-        cpu, ram = generate_metric()
-        message = build_log_message(cpu, ram)
+        for server in SERVERS:
+            cpu, ram = generate_metric()
+            message = build_log_message(cpu, ram)
+            save_metric(conn, server, cpu, ram)
+            save_log(conn, server, message)
+        conn.commit()  # alle Server gemeinsam committen
 
-        save_metric(conn, SERVER, cpu, ram)
-        save_log(conn, SERVER, message)
-        conn.commit()  # Metrik + Log gemeinsam committen
-
-        print(f"Saved metric (CPU={cpu}, RAM={ram}) and log: {message}")
+        print(f"Saved metrics + logs for {len(SERVERS)} servers")
         time.sleep(interval)
 
 

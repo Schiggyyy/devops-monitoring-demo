@@ -8,6 +8,7 @@ function App() {
   const [metrics, setMetrics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [selectedServer, setSelectedServer] = useState("all");
 
   async function fetchMetrics() {
     try {
@@ -28,19 +29,28 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  const latest = metrics[0];
+  // Liste der vorhandenen Server dynamisch aus den Daten ableiten.
+  const servers = [...new Set(metrics.map((item) => item.server_name))].sort();
+
+  // Nach gewaehltem Server filtern ("all" = keine Filterung).
+  const filtered =
+    selectedServer === "all"
+      ? metrics
+      : metrics.filter((item) => item.server_name === selectedServer);
+
+  const latest = filtered[0];
 
   const averageCpu =
-    metrics.length > 0
-      ? (metrics.reduce((sum, item) => sum + Number(item.cpu_usage), 0) / metrics.length).toFixed(1)
+    filtered.length > 0
+      ? (filtered.reduce((sum, item) => sum + Number(item.cpu_usage), 0) / filtered.length).toFixed(1)
       : 0;
 
   const averageRam =
-    metrics.length > 0
-      ? (metrics.reduce((sum, item) => sum + Number(item.ram_usage), 0) / metrics.length).toFixed(1)
+    filtered.length > 0
+      ? (filtered.reduce((sum, item) => sum + Number(item.ram_usage), 0) / filtered.length).toFixed(1)
       : 0;
 
-  const warningCount = metrics.filter((item) => item.status === "WARNING").length;
+  const warningCount = filtered.filter((item) => item.status === "WARNING").length;
 
   return (
     <div style={styles.page}>
@@ -58,11 +68,39 @@ function App() {
         </div>
       </header>
 
+      <div style={styles.filterBar}>
+        <button
+          style={{
+            ...styles.filterButton,
+            ...(selectedServer === "all" ? styles.filterButtonActive : {}),
+          }}
+          onClick={() => setSelectedServer("all")}
+        >
+          Alle Server
+        </button>
+        {servers.map((server) => (
+          <button
+            key={server}
+            style={{
+              ...styles.filterButton,
+              ...(selectedServer === server ? styles.filterButtonActive : {}),
+            }}
+            onClick={() => setSelectedServer(server)}
+          >
+            {server}
+          </button>
+        ))}
+      </div>
+
       <section style={styles.grid}>
         <DashboardCard
           icon={<Server size={28} />}
           title="Aktueller Server"
-          value={latest?.server_name || "Keine Daten"}
+          value={
+            selectedServer === "all"
+              ? latest?.server_name || "Keine Daten"
+              : selectedServer
+          }
           description="Simulierte Monitoring-Quelle"
         />
 
@@ -94,7 +132,11 @@ function App() {
           <div>
             <h2 style={styles.panelTitle}>Letzte Monitoring-Daten</h2>
             <p style={styles.panelSubtitle}>
-              Aktualisierung alle 5 Sekunden {lastUpdated && `- zuletzt um ${lastUpdated}`}
+              {selectedServer === "all"
+                ? "Alle Server"
+                : `Gefiltert: ${selectedServer}`}
+              {" - Aktualisierung alle 5 Sekunden"}
+              {lastUpdated && ` - zuletzt um ${lastUpdated}`}
             </p>
           </div>
         </div>
@@ -114,7 +156,7 @@ function App() {
               </tr>
             </thead>
             <tbody>
-              {metrics.map((item) => (
+              {filtered.map((item) => (
                 <tr key={item.id} style={styles.tr}>
                   <td style={styles.td}>{item.id}</td>
                   <td style={styles.td}>{item.server_name}</td>
@@ -139,6 +181,7 @@ function App() {
           </table>
         )}
       </section>
+
       <LogPanel />
     </div>
   );
@@ -187,6 +230,26 @@ const styles = {
     border: "1px solid #334155",
     borderRadius: "999px",
     padding: "10px 16px",
+  },
+  filterBar: {
+    display: "flex",
+    gap: "10px",
+    marginBottom: "24px",
+    flexWrap: "wrap",
+  },
+  filterButton: {
+    padding: "8px 16px",
+    borderRadius: "999px",
+    border: "1px solid #334155",
+    background: "#1e293b",
+    color: "#94a3b8",
+    cursor: "pointer",
+    fontSize: "14px",
+  },
+  filterButtonActive: {
+    background: "#2563eb",
+    color: "#ffffff",
+    borderColor: "#2563eb",
   },
   grid: {
     display: "grid",
