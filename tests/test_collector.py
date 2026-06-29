@@ -11,15 +11,15 @@ class TestBuildLogMessage:
     @pytest.mark.parametrize(
         "cpu, ram, expected_prefix",
         [
-            (50, 50, "INFO "),                      # Normalbetrieb
-            (70, 70, "INFO "),                      # genau 70 ist noch INFO
-            (70.1, 10, "WARNING high load"),        # knapp ueber 70
-            (71, 10, "WARNING high load"),          # CPU hoch
-            (10, 71, "WARNING high load"),          # RAM hoch
-            (85, 85, "WARNING high load"),          # genau 85 ist noch WARNING
-            (85.1, 10, "ERROR resource exhaustion"),  # knapp ueber 85
-            (86, 10, "ERROR resource exhaustion"),    # CPU sehr hoch
-            (10, 86, "ERROR resource exhaustion"),    # RAM sehr hoch
+            (50, 50, "INFO "),
+            (70, 70, "INFO "),
+            (70.1, 10, "WARNING high load"),
+            (71, 10, "WARNING high load"),
+            (10, 71, "WARNING high load"),
+            (85, 85, "WARNING high load"),
+            (85.1, 10, "ERROR resource exhaustion"),
+            (86, 10, "ERROR resource exhaustion"),
+            (10, 86, "ERROR resource exhaustion"),
         ],
     )
     def test_level_grenzwerte(self, collector_module, cpu, ram, expected_prefix):
@@ -34,7 +34,6 @@ class TestBuildLogMessage:
     def test_info_kommt_aus_pool(self, collector_module):
         msg = collector_module.build_log_message(20, 20)
         assert msg.startswith("INFO ")
-        # Der Text nach "INFO " muss aus dem definierten Pool stammen.
         assert msg[len("INFO "):] in collector_module.INFO_MESSAGES
 
 
@@ -78,4 +77,7 @@ class TestSaveFunctions:
 
     def test_save_log(self, collector_module):
         calls = []
-        collector_module.save_log(self.
+        collector_module.save_log(self._fake_conn(calls), "demo-server-1", "INFO test")
+        sql, params = calls[0]
+        assert "INSERT INTO raw_logs" in sql
+        assert params == ("demo-server-1", "INFO test")
