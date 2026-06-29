@@ -163,12 +163,7 @@ function App() {
                   <td style={styles.td}>{Number(item.cpu_usage).toFixed(1)}%</td>
                   <td style={styles.td}>{Number(item.ram_usage).toFixed(1)}%</td>
                   <td style={styles.td}>
-                    <span
-                      style={{
-                        ...styles.badge,
-                        ...(item.status === "WARNING" ? styles.badgeWarning : styles.badgeOk),
-                      }}
-                    >
+                    <span style={{ ...styles.badge, ...statusStyle(item.status) }}>
                       {item.status}
                     </span>
                   </td>
@@ -199,8 +194,13 @@ function DashboardCard({ icon, title, value, description, warning }) {
     </div>
   );
 }
-
+function statusStyle(status) {
+  if (status === "CRITICAL") return styles.badgeCritical;
+  if (status === "WARNING") return styles.badgeWarning;
+  return styles.badgeOk;
+}
 const styles = {
+
   page: {
     minHeight: "100vh",
     background: "#0f172a",
@@ -345,6 +345,10 @@ const styles = {
   badgeWarning: {
     background: "#7c2d12",
     color: "#fed7aa",
+  },
+  badgeCritical: {
+    background: "#7f1d1d",
+    color: "#fecaca",
   },
 };
 
