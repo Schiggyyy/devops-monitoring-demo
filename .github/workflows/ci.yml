@@ -22,12 +22,12 @@ jobs:
           python-version: "3.12"
 
       - name: Abhaengigkeiten installieren
-        run: pip install -r processing-service/requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
 
       - name: Tests ausfuehren
-        run: |
-          cd processing-service
-          pytest -v
+        run: pytest -v
 
   build:
     name: Build Docker images
