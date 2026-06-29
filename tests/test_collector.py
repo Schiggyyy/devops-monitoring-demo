@@ -7,37 +7,31 @@ Geprueft wird die echte Logik – ohne Datenbank, ohne laufenden Container.
 import pytest
 
 
-class TestClassifyLogLevel:
+class TestBuildLogMessage:
     @pytest.mark.parametrize(
-        "cpu, ram, expected",
+        "cpu, ram, expected_prefix",
         [
-            (50, 50, "INFO"),
-            (70, 70, "INFO"),       # genau 70 ist noch INFO (Schwelle ist "groesser als")
-            (70.1, 10, "WARNING"),  # knapp ueber 70
-            (71, 10, "WARNING"),    # CPU hoch
-            (10, 71, "WARNING"),    # RAM hoch
-            (85, 85, "WARNING"),    # genau 85 ist noch WARNING
-            (85.1, 10, "ERROR"),    # knapp ueber 85
-            (86, 10, "ERROR"),      # CPU sehr hoch
-            (10, 86, "ERROR"),      # RAM sehr hoch
+            (50, 50, "INFO "),                      # Normalbetrieb
+            (70, 70, "INFO "),                      # genau 70 ist noch INFO
+            (70.1, 10, "WARNING high load"),        # knapp ueber 70
+            (71, 10, "WARNING high load"),          # CPU hoch
+            (10, 71, "WARNING high load"),          # RAM hoch
+            (85, 85, "WARNING high load"),          # genau 85 ist noch WARNING
+            (85.1, 10, "ERROR resource exhaustion"),  # knapp ueber 85
+            (86, 10, "ERROR resource exhaustion"),    # CPU sehr hoch
+            (10, 86, "ERROR resource exhaustion"),    # RAM sehr hoch
         ],
     )
-    def test_level_grenzwerte(self, collector_module, cpu, ram, expected):
-        assert collector_module.classify_log_level(cpu, ram) == expected
+    def test_level_grenzwerte(self, collector_module, cpu, ram, expected_prefix):
+        msg = collector_module.build_log_message(cpu, ram)
+        assert msg.startswith(expected_prefix)
 
-
-class TestBuildLogMessage:
-    def test_error_meldung(self, collector_module):
+    def test_error_enthaelt_werte(self, collector_module):
         msg = collector_module.build_log_message(90, 10)
-        assert msg.startswith("ERROR resource exhaustion")
         assert "cpu=90%" in msg
         assert "ram=10%" in msg
 
-    def test_warning_meldung(self, collector_module):
-        msg = collector_module.build_log_message(75, 10)
-        assert msg.startswith("WARNING high load")
-
-    def test_info_meldung_kommt_aus_pool(self, collector_module):
+    def test_info_kommt_aus_pool(self, collector_module):
         msg = collector_module.build_log_message(20, 20)
         assert msg.startswith("INFO ")
         # Der Text nach "INFO " muss aus dem definierten Pool stammen.
@@ -75,16 +69,13 @@ class TestSaveFunctions:
 
         return FakeConn()
 
-    def test_save_raw_metric(self, collector_module):
+    def test_save_metric(self, collector_module):
         calls = []
-        collector_module.save_raw_metric(self._fake_conn(calls), "demo-server-1", 50.0, 40.0)
+        collector_module.save_metric(self._fake_conn(calls), "demo-server-1", 50.0, 40.0)
         sql, params = calls[0]
         assert "INSERT INTO raw_metrics" in sql
         assert params == ("demo-server-1", 50.0, 40.0)
 
-    def test_save_raw_log(self, collector_module):
+    def test_save_log(self, collector_module):
         calls = []
-        collector_module.save_raw_log(self._fake_conn(calls), "demo-server-1", "INFO test")
-        sql, params = calls[0]
-        assert "INSERT INTO raw_logs" in sql
-        assert params == ("demo-server-1", "INFO test")
+        collector_module.save_log(self.
