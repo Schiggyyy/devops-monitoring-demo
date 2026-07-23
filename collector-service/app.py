@@ -2,6 +2,7 @@ import time
 import random
 import psycopg2
 
+HEARTBEAT_FILE = "/tmp/heartbeat"
 
 SERVERS = ["demo-server-1", "demo-server-2", "demo-server-3"]
 
@@ -67,6 +68,12 @@ def save_log(conn, source, message):
         )
 
 
+def write_heartbeat():
+    """Schreibt den aktuellen Zeitstempel in die Heartbeat-Datei fuer den Healthcheck."""
+    with open(HEARTBEAT_FILE, "w") as f:
+        f.write(str(time.time()))
+
+
 def run(conn=None, interval=5):
     if conn is None:
         time.sleep(5)
@@ -79,6 +86,8 @@ def run(conn=None, interval=5):
             save_metric(conn, server, cpu, ram)
             save_log(conn, server, message)
         conn.commit()  # alle Server gemeinsam committen
+
+        write_heartbeat()
 
         print(f"Saved metrics + logs for {len(SERVERS)} servers")
         time.sleep(interval)
