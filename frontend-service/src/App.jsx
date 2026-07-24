@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Activity, Cpu, Database, Server, AlertTriangle, CheckCircle } from "lucide-react";
 import LogPanel from "./LogPanel.jsx";
 
-const API_URL = "https://api-service.bluerock-d23a0e49.norwayeast.azurecontainerapps.io/metrics";
+const API_URL = "/api/metrics";
 
 function App() {
   const [metrics, setMetrics] = useState([]);

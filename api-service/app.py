@@ -25,7 +25,7 @@ def get_connection():
         database=os.getenv("DB_NAME", "monitoring"),
         user=os.getenv("DB_USER", "demo"),
         password=os.getenv("DB_PASSWORD", "demo"),
-        sslmode="require"
+        sslmode=os.getenv("DB_SSLMODE", "prefer"),
     )
 
 @app.get("/")
