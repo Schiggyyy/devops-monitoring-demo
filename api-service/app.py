@@ -11,6 +11,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://localhost",
+        "https://frontend-service.internal.bluerock-d23a0e49.norwayeast.azurecontainerapps.io",
     ],
     allow_credentials=True,
     allow_methods=["GET"],
@@ -24,6 +25,7 @@ def get_connection():
         database=os.getenv("DB_NAME", "monitoring"),
         user=os.getenv("DB_USER", "demo"),
         password=os.getenv("DB_PASSWORD", "demo"),
+        sslmode="require"
     )
 
 @app.get("/")
