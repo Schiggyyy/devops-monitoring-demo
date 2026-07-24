@@ -45,30 +45,38 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: api-service bauen und pushen
+- name: api-service bauen und pushen
         uses: docker/build-push-action@v6
         with:
           context: ./api-service
           push: true
-          tags: ${{ secrets.ACR_LOGIN_SERVER }}/api-service:latest
+          tags: |
+            ${{ secrets.ACR_LOGIN_SERVER }}/api-service:latest
+            ${{ secrets.ACR_LOGIN_SERVER }}/api-service:${{ github.sha }}
 
       - name: collector-service bauen und pushen
         uses: docker/build-push-action@v6
         with:
           context: ./collector-service
           push: true
-          tags: ${{ secrets.ACR_LOGIN_SERVER }}/collector-service:latest
+          tags: |
+            ${{ secrets.ACR_LOGIN_SERVER }}/collector-service:latest
+            ${{ secrets.ACR_LOGIN_SERVER }}/collector-service:${{ github.sha }}
 
       - name: processing-service bauen und pushen
         uses: docker/build-push-action@v6
         with:
           context: ./processing-service
           push: true
-          tags: ${{ secrets.ACR_LOGIN_SERVER }}/processing-service:latest
+          tags: |
+            ${{ secrets.ACR_LOGIN_SERVER }}/processing-service:latest
+            ${{ secrets.ACR_LOGIN_SERVER }}/processing-service:${{ github.sha }}
 
       - name: frontend-service bauen und pushen
         uses: docker/build-push-action@v6
         with:
           context: ./frontend-service
           push: true
-          tags: ${{ secrets.ACR_LOGIN_SERVER }}/frontend-service:latest
+          tags: |
+            ${{ secrets.ACR_LOGIN_SERVER }}/frontend-service:latest
+            ${{ secrets.ACR_LOGIN_SERVER }}/frontend-service:${{ github.sha }}
