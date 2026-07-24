@@ -5,3 +5,4 @@ pytest>=7.4
 httpx>=0.27          # wird vom FastAPI TestClient gebraucht
 fastapi              # fuer die API-Tests (echte App wird importiert)
 psycopg2-binary      # api-service/app.py importiert psycopg2 beim Laden
+pytest-cov>=5.0
