@@ -11,7 +11,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://localhost",
-        "https://frontend-service.internal.bluerock-d23a0e49.norwayeast.azurecontainerapps.io",
+        "https://frontend-service.bluerock-d23a0e49.norwayeast.azurecontainerapps.io",
     ],
     allow_credentials=True,
     allow_methods=["GET"],
