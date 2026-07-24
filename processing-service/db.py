@@ -16,6 +16,7 @@ DB_CONFIG = {
     "dbname": os.getenv("DB_NAME", "monitoring"),
     "user": os.getenv("DB_USER", "demo"),
     "password": os.getenv("DB_PASSWORD", "demo"),
+    "sslmode": "require",
 }
 
 
