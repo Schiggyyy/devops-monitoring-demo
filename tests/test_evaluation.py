@@ -3,12 +3,14 @@ Tests fuer die Bewertungslogik - brauchen KEINE Datenbank.
 Ausfuehren mit: pytest
 """
 
-import os
 import sys
+from pathlib import Path
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "processing-service"))
 
 from evaluation import classify, evaluate, worse
+from log_evaluation import evaluate_log, parse_level
 
 
 def test_classify_ok():
@@ -54,3 +56,29 @@ def test_evaluate_critical_durch_ram():
 def test_evaluate_schlechterer_wert_gewinnt():
     result = evaluate(cpu_usage=80, ram_usage=92)
     assert result.status == "CRITICAL"
+
+def test_parse_level_findet_ganze_woerter():
+    assert parse_level("ERROR resource exhaustion") == "ERROR"
+    assert parse_level("WARNING high load") == "WARNING"
+
+
+def test_parse_level_ignoriert_teilwoerter():
+    # "warned" darf nicht als WARNING erkannt werden
+    assert parse_level("user was warned about quota") == "INFO"
+
+
+def test_parse_level_schwerster_treffer_gewinnt():
+    assert parse_level("INFO followed by ERROR") == "ERROR"
+
+
+def test_parse_level_default_ist_info():
+    assert parse_level("keine stufe enthalten") == "INFO"
+
+
+def test_warn_wird_zu_warning_normalisiert():
+    assert parse_level("WARN disk almost full") == "WARNING"
+
+
+def test_evaluate_log_liefert_level_und_status():
+    assert evaluate_log("ERROR crash") == ("ERROR", "CRITICAL")
+    assert evaluate_log("INFO health check ok") == ("INFO", "OK")
