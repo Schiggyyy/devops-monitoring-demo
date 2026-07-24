@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { FileText } from "lucide-react";
 
-const LOGS_URL = "http://localhost:8000/logs";
+const LOGS_URL = "https://api-service.bluerock-d23a0e49.norwayeast.azurecontainerapps.io/logs";
 
 const levelColors = {
   INFO: { bg: "#14532d", color: "#bbf7d0" },
