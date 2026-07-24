@@ -20,6 +20,11 @@ services:
     depends_on:
       database:
         condition: service_healthy
+    environment:
+      DB_HOST: database
+      DB_NAME: monitoring
+      DB_USER: demo
+      DB_PASSWORD: demo
     healthcheck:
       test: [ "CMD-SHELL", "find /tmp/heartbeat -mmin -1 | grep -q heartbeat || exit 1" ]
       interval: 15s
@@ -43,7 +48,13 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - database
+      database:
+        condition: service_healthy
+    environment:
+      DB_HOST: database
+      DB_NAME: monitoring
+      DB_USER: demo
+      DB_PASSWORD: demo
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/" ]
       interval: 10s

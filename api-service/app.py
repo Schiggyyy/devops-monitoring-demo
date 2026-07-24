@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import psycopg2
@@ -18,10 +19,11 @@ app.add_middleware(
 
 def get_connection():
     return psycopg2.connect(
-        host="database",
-        database="monitoring",
-        user="demo",
-        password="demo"
+        host=os.getenv("DB_HOST", "database"),
+        port=os.getenv("DB_PORT", "5432"),
+        database=os.getenv("DB_NAME", "monitoring"),
+        user=os.getenv("DB_USER", "demo"),
+        password=os.getenv("DB_PASSWORD", "demo"),
     )
 
 @app.get("/")

@@ -1,3 +1,4 @@
+import os
 import time
 import random
 import psycopg2
@@ -18,10 +19,11 @@ INFO_MESSAGES = [
 
 def get_connection():
     return psycopg2.connect(
-        host="database",
-        database="monitoring",
-        user="demo",
-        password="demo",
+        host=os.getenv("DB_HOST", "database"),
+        port=os.getenv("DB_PORT", "5432"),
+        database=os.getenv("DB_NAME", "monitoring"),
+        user=os.getenv("DB_USER", "demo"),
+        password=os.getenv("DB_PASSWORD", "demo"),
     )
 
 
