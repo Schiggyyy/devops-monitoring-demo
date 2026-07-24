@@ -38,16 +38,10 @@ jobs:
       - name: Code auschecken
         uses: actions/checkout@v4
 
-      - name: Debug Registry-Wert
-        run: |
-          echo "Registry ist: devopsmonitoringacrpaulhb.azurecr.io"
-          nslookup devopsmonitoringacrpaulhb.azurecr.io || echo "NSLOOKUP FEHLGESCHLAGEN"
-          curl -v https://devopsmonitoringacrpaulthb.azurecr.io/v2/ || echo "CURL FEHLGESCHLAGEN"
-
       - name: Bei ACR einloggen
         uses: docker/login-action@v3
         with:
-          registry: devopsmonitoringacrpaulthb.azurecr.io
+          registry: ${{ secrets.ACR_LOGIN_SERVER }}
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
