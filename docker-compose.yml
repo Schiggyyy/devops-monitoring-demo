@@ -2,15 +2,15 @@ services:
   database:
     image: postgres:16
     environment:
-      POSTGRES_USER: demo
-      POSTGRES_PASSWORD: demo
-      POSTGRES_DB: monitoring
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U demo -d monitoring"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -21,10 +21,11 @@ services:
       database:
         condition: service_healthy
     environment:
-      DB_HOST: database
-      DB_NAME: monitoring
-      DB_USER: demo
-      DB_PASSWORD: demo
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
     healthcheck:
       test: [ "CMD-SHELL", "find /tmp/heartbeat -mmin -1 | grep -q heartbeat || exit 1" ]
       interval: 15s
@@ -35,12 +36,14 @@ services:
   processing-service:
     build: ./processing-service
     depends_on:
-      - database
+      database:
+        condition: service_healthy
     environment:
-      DB_HOST: database
-      DB_NAME: monitoring
-      DB_USER: demo
-      DB_PASSWORD: demo
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
     restart: unless-stopped
 
   api-service:
@@ -51,10 +54,11 @@ services:
       database:
         condition: service_healthy
     environment:
-      DB_HOST: database
-      DB_NAME: monitoring
-      DB_USER: demo
-      DB_PASSWORD: demo
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/" ]
       interval: 10s
