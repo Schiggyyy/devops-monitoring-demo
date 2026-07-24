@@ -29,13 +29,46 @@ jobs:
       - name: Tests ausfuehren
         run: pytest -v
 
-  build:
-    name: Build Docker images
-    needs: test          # startet nur, wenn der Test-Job erfolgreich war
+  build-and-push:
+    name: Build & Push Images zu ACR
+    needs: test
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     steps:
       - name: Code auschecken
         uses: actions/checkout@v4
 
-      - name: Container bauen
-        run: docker compose build
+      - name: Bei ACR einloggen
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: api-service bauen und pushen
+        uses: docker/build-push-action@v6
+        with:
+          context: ./api-service
+          push: true
+          tags: ${{ secrets.ACR_LOGIN_SERVER }}/api-service:latest
+
+      - name: collector-service bauen und pushen
+        uses: docker/build-push-action@v6
+        with:
+          context: ./collector-service
+          push: true
+          tags: ${{ secrets.ACR_LOGIN_SERVER }}/collector-service:latest
+
+      - name: processing-service bauen und pushen
+        uses: docker/build-push-action@v6
+        with:
+          context: ./processing-service
+          push: true
+          tags: ${{ secrets.ACR_LOGIN_SERVER }}/processing-service:latest
+
+      - name: frontend-service bauen und pushen
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend-service
+          push: true
+          tags: ${{ secrets.ACR_LOGIN_SERVER }}/frontend-service:latest
